@@ -1,0 +1,27 @@
+{
+  "name": "ak-print-studio-ai-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AK IT'S TIME TO SHINE — RAG assistant service (Next.js). Embeds, retrieves, answers.",
+  "scripts": {
+    "dev": "next dev -p 8000",
+    "build": "next build",
+    "start": "next start -p 8000",
+    "typecheck": "tsc --noEmit",
+    "warmup": "node --experimental-strip-types scripts/warmup.ts"
+  },
+  "dependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "next": "^15.1.6",
+    "pg": "^8.13.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.7",
+    "typescript": "^5.7.3"
+  }
+}

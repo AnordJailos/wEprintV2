@@ -1,0 +1,30 @@
+{
+  "name": "ak-print-studio-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AK IT'S TIME TO SHINE — print studio backend API (Next.js, clean architecture)",
+  "scripts": {
+    "dev": "next dev -p 8080",
+    "build": "next build",
+    "start": "next start -p 8080",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "migrate": "node --experimental-strip-types scripts/migrate.ts",
+    "seed:admin": "node --experimental-strip-types scripts/seed-admin.ts",
+    "tasks": "node --experimental-strip-types scripts/run-tasks.ts"
+  },
+  "dependencies": {
+    "jose": "^5.9.6",
+    "next": "^15.1.6",
+    "pg": "^8.13.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.7",
+    "typescript": "^5.7.3"
+  }
+}
