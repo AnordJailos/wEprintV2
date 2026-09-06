@@ -37,7 +37,6 @@ function extractive(passages: Passage[]): string {
 }
 
 /**
- * Default endpoint is the Lovable AI Gateway — free, no external account.
  * Any OpenAI-compatible Responses API works (the gateway, a local vLLM...).
  * GPT-5.6-family models require the Responses API: `instructions` +
  * `input`, `max_output_tokens`, and no `temperature` (rejected with 400).
