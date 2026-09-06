@@ -7,7 +7,7 @@
  */
 import { Pool, type PoolClient, type QueryResultRow } from 'pg';
 
-import { config } from '@/core/config';
+import { config } from '../core/config.ts';
 
 // Next.js re-evaluates modules on hot reload; keep one pool per process.
 const globalForPg = globalThis as unknown as { __akPool?: Pool };

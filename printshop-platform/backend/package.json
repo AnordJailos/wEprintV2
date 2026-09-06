@@ -9,10 +9,9 @@
     "start": "next start -p 8080",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "migrate": "node --experimental-strip-types scripts/migrate.ts",
-    "seed:admin": "node --experimental-strip-types scripts/seed-admin.ts",
-    "tasks": "node --experimental-strip-types scripts/run-tasks.ts"
-  },
+    "migrate": "node --env-file=.env --experimental-strip-types scripts/migrate.ts",
+    "seed:admin": "node --env-file=.env --experimental-strip-types scripts/seed-admin.ts",
+    "tasks": "tsx --env-file=.env scripts/run-tasks.ts"  },
   "dependencies": {
     "jose": "^5.9.6",
     "next": "^15.1.6",
@@ -25,6 +24,7 @@
     "@types/node": "^22.10.5",
     "@types/pg": "^8.11.10",
     "@types/react": "^19.0.7",
+    "tsx": "^4.23.13",
     "typescript": "^5.7.3"
   }
 }

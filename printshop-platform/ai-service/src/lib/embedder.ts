@@ -7,7 +7,7 @@
  * once per process and reused; the first call downloads it into
  * TRANSFORMERS_CACHE.
  */
-import { config } from './config';
+import { config } from './config.ts';
 
 export const EMBEDDING_DIMENSIONS = 384;
 

@@ -36,8 +36,8 @@ export function config(): AiConfig {
     topK: Number(env.TOP_K ?? 5),
     embeddingModel: env.EMBEDDING_MODEL ?? 'Xenova/all-MiniLM-L6-v2',
     llmApiUrl: env.LLM_API_URL ?? '',
-    llmApiKey: env.LLM_API_KEY ?? '',
-    llmModel: env.LLM_MODEL ?? 'gpt-4o-mini',
+    llmApiKey: env.LLM_API_KEY ?? env.LOVABLE_API_KEY ?? '',
+    llmModel: env.LLM_MODEL ?? 'openai/gpt-5.6-sol',
   });
   if (!parsed.success) {
     throw new Error(

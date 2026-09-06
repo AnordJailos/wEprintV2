@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start -p 8000",
     "typecheck": "tsc --noEmit",
-    "warmup": "node --experimental-strip-types scripts/warmup.ts"
+    "warmup": "node --env-file=.env --experimental-strip-types scripts/warmup.ts"
   },
   "dependencies": {
     "@xenova/transformers": "^2.17.2",
@@ -16,6 +16,7 @@
     "pg": "^8.13.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "sharp": "0.32.6",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -23,5 +24,9 @@
     "@types/pg": "^8.11.10",
     "@types/react": "^19.0.7",
     "typescript": "^5.7.3"
+  },
+  "allowScripts": {
+    "sharp@0.32.6": true,
+    "sharp@0.35.4": true
   }
 }

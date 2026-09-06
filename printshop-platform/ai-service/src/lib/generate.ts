@@ -36,6 +36,12 @@ function extractive(passages: Passage[]): string {
     .join('\n\n');
 }
 
+/**
+ * Default endpoint is the Lovable AI Gateway — free, no external account.
+ * Any OpenAI-compatible Responses API works (the gateway, a local vLLM...).
+ * GPT-5.6-family models require the Responses API: `instructions` +
+ * `input`, `max_output_tokens`, and no `temperature` (rejected with 400).
+ */
 async function viaLlm(question: string, passages: Passage[]): Promise<string | null> {
   const { llmApiUrl, llmApiKey, llmModel } = config();
   if (!llmApiUrl) return null;
@@ -45,7 +51,7 @@ async function viaLlm(question: string, passages: Passage[]): Promise<string | n
     .join('\n\n');
 
   try {
-    const res = await fetch(llmApiUrl.replace(/\/$/, '') + '/chat/completions', {
+    const res = await fetch(llmApiUrl.replace(/\/$/, '') + '/responses', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -53,12 +59,9 @@ async function viaLlm(question: string, passages: Passage[]): Promise<string | n
       },
       body: JSON.stringify({
         model: llmModel,
-        temperature: 0.2,
-        max_tokens: 400,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `Passages:\n${context}\n\nCustomer question: ${question}` },
-        ],
+        instructions: SYSTEM_PROMPT,
+        input: `Passages:\n${context}\n\nCustomer question: ${question}`,
+        max_output_tokens: 600,
       }),
       signal: AbortSignal.timeout(20_000),
     });
@@ -66,8 +69,17 @@ async function viaLlm(question: string, passages: Passage[]): Promise<string | n
       console.error('[llm]', res.status, (await res.text()).slice(0, 300));
       return null;
     }
-    const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    const answer = json.choices?.[0]?.message?.content?.trim();
+    const json = (await res.json()) as {
+      output_text?: string;
+      output?: { type: string; content?: { type: string; text?: string }[] }[];
+    };
+    const answer =
+      json.output_text?.trim() ||
+      json.output
+        ?.find((o) => o.type === 'message')
+        ?.content?.map((c) => c.text ?? '')
+        .join('')
+        .trim();
     return answer || null;
   } catch (e) {
     console.error('[llm]', e);
