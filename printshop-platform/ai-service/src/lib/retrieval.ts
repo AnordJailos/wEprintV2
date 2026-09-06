@@ -5,9 +5,9 @@
  * looser than that is noise, and answering from noise is worse than admitting
  * the knowledge base has no answer.
  */
-import { config } from './config';
-import { readOnly } from './db';
-import { embedOne } from './embedder';
+import { config } from "./config";
+import { readOnly } from "./db";
+import { embedOne } from "./embedder";
 
 export type Passage = {
   entryId: number;
@@ -27,7 +27,7 @@ type Row = {
 
 export async function retrieve(question: string): Promise<Passage[]> {
   const { topK, maxDistance } = config();
-  const vector = `[${(await embedOne(question)).join(',')}]`;
+  const vector = `[${(await embedOne(question)).join(",")}]`;
 
   const rows = await readOnly<Row>(
     `SELECT v.knowledge_base_entry_id,

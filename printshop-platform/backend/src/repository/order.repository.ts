@@ -1,14 +1,14 @@
 /** Orders, their lines and their timeline. */
-import type { PoolClient } from 'pg';
+import type { PoolClient } from "pg";
 
-import { count, one, query } from '@/db/pool';
+import { count, one, query } from "@/db/pool";
 import type {
   OrderItemRow,
   OrderRow,
   OrderStatus,
   OrderStatusHistoryRow,
   PaymentStatus,
-} from '@/entities/types';
+} from "@/entities/types";
 
 export type OrderWithCustomer = OrderRow & { customer_name: string };
 
@@ -26,11 +26,11 @@ export const OrderRepository = {
       values.push(params.userId);
       where.push(`o.user_id = $${values.length}`);
     }
-    if (params.status && params.status !== 'all') {
+    if (params.status && params.status !== "all") {
       values.push(params.status);
       where.push(`o.status = $${values.length}`);
     }
-    const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
     const total = await count(`SELECT COUNT(*)::text AS count FROM orders o ${clause}`, values);
     const rows = await query<OrderWithCustomer>(
@@ -55,19 +55,22 @@ export const OrderRepository = {
   },
 
   items(orderId: number) {
-    return query<OrderItemRow>('SELECT * FROM order_items WHERE order_id = $1 ORDER BY id ASC', [orderId]);
+    return query<OrderItemRow>("SELECT * FROM order_items WHERE order_id = $1 ORDER BY id ASC", [
+      orderId,
+    ]);
   },
 
   itemsFor(orderIds: number[]) {
     if (orderIds.length === 0) return Promise.resolve([] as OrderItemRow[]);
-    return query<OrderItemRow>('SELECT * FROM order_items WHERE order_id = ANY($1::int[]) ORDER BY id ASC', [
-      orderIds,
-    ]);
+    return query<OrderItemRow>(
+      "SELECT * FROM order_items WHERE order_id = ANY($1::int[]) ORDER BY id ASC",
+      [orderIds],
+    );
   },
 
   history(orderId: number) {
     return query<OrderStatusHistoryRow>(
-      'SELECT * FROM order_status_history WHERE order_id = $1 ORDER BY changed_at ASC, id ASC',
+      "SELECT * FROM order_status_history WHERE order_id = $1 ORDER BY changed_at ASC, id ASC",
       [orderId],
     );
   },
@@ -131,17 +134,25 @@ export const OrderRepository = {
   },
 
   updateStatus(id: number, status: OrderStatus) {
-    return one<OrderRow>('UPDATE orders SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING *', [id, status]);
+    return one<OrderRow>(
+      "UPDATE orders SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING *",
+      [id, status],
+    );
   },
 
   updatePaymentStatus(id: number, paymentStatus: PaymentStatus) {
     return one<OrderRow>(
-      'UPDATE orders SET payment_status = $2, updated_at = NOW() WHERE id = $1 RETURNING *',
+      "UPDATE orders SET payment_status = $2, updated_at = NOW() WHERE id = $1 RETURNING *",
       [id, paymentStatus],
     );
   },
 
-  insertHistory(data: { order_id: number; status: OrderStatus; note: string | null; changed_by: number | null }) {
+  insertHistory(data: {
+    order_id: number;
+    status: OrderStatus;
+    note: string | null;
+    changed_by: number | null;
+  }) {
     return query(
       `INSERT INTO order_status_history (order_id, status, note, changed_by) VALUES ($1, $2, $3, $4)`,
       [data.order_id, data.status, data.note, data.changed_by],
@@ -151,7 +162,7 @@ export const OrderRepository = {
   /** Highest reference number today, used to build AK-YYMMDD-### references. */
   async lastReferenceToday(prefix: string) {
     const row = await one<{ reference: string }>(
-      'SELECT reference FROM orders WHERE reference LIKE $1 ORDER BY reference DESC LIMIT 1',
+      "SELECT reference FROM orders WHERE reference LIKE $1 ORDER BY reference DESC LIMIT 1",
       [`${prefix}%`],
     );
     return row?.reference ?? null;

@@ -1,15 +1,15 @@
 /** Users and the credentials attached to them. SQL only — no rules here. */
-import { one, query } from '@/db/pool';
-import type { Role, UserRow } from '@/entities/types';
+import { one, query } from "@/db/pool";
+import type { Role, UserRow } from "@/entities/types";
 
 export const UserRepository = {
   findById(id: number) {
-    return one<UserRow>('SELECT * FROM users WHERE id = $1', [id]);
+    return one<UserRow>("SELECT * FROM users WHERE id = $1", [id]);
   },
 
   /** Email is compared case-insensitively; it is stored lower-cased. */
   findByEmail(email: string) {
-    return one<UserRow>('SELECT * FROM users WHERE email = LOWER($1)', [email]);
+    return one<UserRow>("SELECT * FROM users WHERE email = LOWER($1)", [email]);
   },
 
   async insert(data: { name: string; email: string; passwordHash: string; role: Role }) {
@@ -35,7 +35,7 @@ export const UserRepository = {
   },
 
   setResetToken(id: number, token: string, expiresAt: Date) {
-    return query('UPDATE users SET reset_token = $2, reset_token_expires_at = $3 WHERE id = $1', [
+    return query("UPDATE users SET reset_token = $2, reset_token_expires_at = $3 WHERE id = $1", [
       id,
       token,
       expiresAt.toISOString(),

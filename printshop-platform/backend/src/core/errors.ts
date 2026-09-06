@@ -9,19 +9,19 @@
  *
  * The frontend's ApiError class reads exactly those two fields.
  */
-import { NextResponse } from 'next/server';
-import { ZodError } from 'zod';
+import { NextResponse } from "next/server";
+import { ZodError } from "zod";
 
 export type ErrorCode =
-  | 'BAD_REQUEST'
-  | 'UNAUTHORIZED'
-  | 'FORBIDDEN'
-  | 'NOT_FOUND'
-  | 'CONFLICT'
-  | 'PAYLOAD_TOO_LARGE'
-  | 'RATE_LIMITED'
-  | 'UPSTREAM_ERROR'
-  | 'INTERNAL';
+  | "BAD_REQUEST"
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "NOT_FOUND"
+  | "CONFLICT"
+  | "PAYLOAD_TOO_LARGE"
+  | "RATE_LIMITED"
+  | "UPSTREAM_ERROR"
+  | "INTERNAL";
 
 const STATUS: Record<ErrorCode, number> = {
   BAD_REQUEST: 400,
@@ -42,7 +42,7 @@ export class ApiError extends Error {
     readonly details?: unknown,
   ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 
   get status(): number {
@@ -50,28 +50,28 @@ export class ApiError extends Error {
   }
 
   static badRequest(message: string, details?: unknown) {
-    return new ApiError('BAD_REQUEST', message, details);
+    return new ApiError("BAD_REQUEST", message, details);
   }
-  static unauthorized(message = 'Sign in to continue.') {
-    return new ApiError('UNAUTHORIZED', message);
+  static unauthorized(message = "Sign in to continue.") {
+    return new ApiError("UNAUTHORIZED", message);
   }
-  static forbidden(message = 'This area belongs to the studio owner.') {
-    return new ApiError('FORBIDDEN', message);
+  static forbidden(message = "This area belongs to the studio owner.") {
+    return new ApiError("FORBIDDEN", message);
   }
   static notFound(message: string) {
-    return new ApiError('NOT_FOUND', message);
+    return new ApiError("NOT_FOUND", message);
   }
   static conflict(message: string) {
-    return new ApiError('CONFLICT', message);
+    return new ApiError("CONFLICT", message);
   }
   static tooLarge(message: string) {
-    return new ApiError('PAYLOAD_TOO_LARGE', message);
+    return new ApiError("PAYLOAD_TOO_LARGE", message);
   }
-  static rateLimited(message = 'Too many attempts. Try again shortly.') {
-    return new ApiError('RATE_LIMITED', message);
+  static rateLimited(message = "Too many attempts. Try again shortly.") {
+    return new ApiError("RATE_LIMITED", message);
   }
   static upstream(message: string) {
-    return new ApiError('UPSTREAM_ERROR', message);
+    return new ApiError("UPSTREAM_ERROR", message);
   }
 }
 
@@ -97,17 +97,22 @@ export function withErrors<A extends unknown[]>(
       if (e instanceof ZodError) {
         const first = e.issues[0];
         return NextResponse.json(
-          body('BAD_REQUEST', first ? `${first.path.join('.') || 'body'}: ${first.message}` : 'Invalid request.'),
+          body(
+            "BAD_REQUEST",
+            first ? `${first.path.join(".") || "body"}: ${first.message}` : "Invalid request.",
+          ),
           { status: 400 },
         );
       }
       // Postgres surfaces uniqueness as 23505; treat it as a conflict, not a 500.
       const pg = e as { code?: string; constraint?: string };
-      if (pg?.code === '23505') {
-        return NextResponse.json(body('CONFLICT', 'That value is already taken.'), { status: 409 });
+      if (pg?.code === "23505") {
+        return NextResponse.json(body("CONFLICT", "That value is already taken."), { status: 409 });
       }
-      console.error('[unhandled]', e);
-      return NextResponse.json(body('INTERNAL', 'Something went wrong on our side.'), { status: 500 });
+      console.error("[unhandled]", e);
+      return NextResponse.json(body("INTERNAL", "Something went wrong on our side."), {
+        status: 500,
+      });
     }
   };
 }

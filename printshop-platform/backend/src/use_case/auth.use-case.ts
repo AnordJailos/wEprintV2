@@ -8,13 +8,13 @@
  *     password", so the endpoint cannot be used to enumerate customers.
  *   • forgot-password always answers 200 with the same sentence.
  */
-import { z } from 'zod';
+import { z } from "zod";
 
-import { ApiError } from '@/core/errors';
-import { issueToken } from '@/core/jwt';
-import { hashPassword, randomToken, verifyPassword } from '@/core/password';
-import { userResponse, type loginSchema, type registerSchema } from '@/api/dto';
-import { UserRepository } from '@/repository/user.repository';
+import { ApiError } from "@/core/errors";
+import { issueToken } from "@/core/jwt";
+import { hashPassword, randomToken, verifyPassword } from "@/core/password";
+import { userResponse, type loginSchema, type registerSchema } from "@/api/dto";
+import { UserRepository } from "@/repository/user.repository";
 
 type RegisterInput = z.infer<typeof registerSchema>;
 type LoginInput = z.infer<typeof loginSchema>;
@@ -22,13 +22,13 @@ type LoginInput = z.infer<typeof loginSchema>;
 export const AuthUseCase = {
   async register(input: RegisterInput) {
     const existing = await UserRepository.findByEmail(input.email);
-    if (existing) throw ApiError.conflict('That email is already registered.');
+    if (existing) throw ApiError.conflict("That email is already registered.");
 
     const user = await UserRepository.insert({
       name: input.name,
       email: input.email,
       passwordHash: await hashPassword(input.password),
-      role: 'customer', // never from the request
+      role: "customer", // never from the request
     });
 
     if (input.phone) await UserRepository.updateProfile(user.id, { phone: input.phone });
@@ -43,12 +43,15 @@ export const AuthUseCase = {
     // Hash a throwaway string when the email is unknown so both branches take a
     // comparable amount of time; a timing difference is an enumeration oracle.
     if (!user) {
-      await verifyPassword(input.password, `scrypt$16384$8$1$${Buffer.alloc(16).toString('base64')}$${Buffer.alloc(32).toString('base64')}`);
-      throw ApiError.unauthorized('Email or password is incorrect.');
+      await verifyPassword(
+        input.password,
+        `scrypt$16384$8$1$${Buffer.alloc(16).toString("base64")}$${Buffer.alloc(32).toString("base64")}`,
+      );
+      throw ApiError.unauthorized("Email or password is incorrect.");
     }
 
     const valid = await verifyPassword(input.password, user.password_hash);
-    if (!valid) throw ApiError.unauthorized('Email or password is incorrect.');
+    if (!valid) throw ApiError.unauthorized("Email or password is incorrect.");
 
     const token = await issueToken(user.id, user.role);
     return { token, user: userResponse(user) };
@@ -63,7 +66,7 @@ export const AuthUseCase = {
    */
   async forgotPassword(email: string, exposeToken: boolean) {
     const user = await UserRepository.findByEmail(email);
-    const message = 'If that email is registered, a reset link is on its way.';
+    const message = "If that email is registered, a reset link is on its way.";
     if (!user) return { message };
 
     const token = randomToken();
@@ -75,9 +78,9 @@ export const AuthUseCase = {
 
   async resetPassword(token: string, password: string) {
     const user = await UserRepository.findByResetToken(token);
-    if (!user) throw ApiError.badRequest('That reset link is invalid or has expired.');
+    if (!user) throw ApiError.badRequest("That reset link is invalid or has expired.");
 
     await UserRepository.applyNewPassword(user.id, await hashPassword(password));
-    return { message: 'Password updated. You can sign in now.' };
+    return { message: "Password updated. You can sign in now." };
   },
 };

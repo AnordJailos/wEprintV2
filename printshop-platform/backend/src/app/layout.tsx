@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
 export const metadata = {
   title: "AK IT'S TIME TO SHINE — Print Studio API",
-  description: 'JSON API for the AK print studio. Interactive reference at /docs.',
+  description: "JSON API for the AK print studio. Interactive reference at /docs.",
 };
 
 /**
@@ -12,7 +12,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}>{children}</body>
+      <body style={{ margin: 0, fontFamily: "ui-sans-serif, system-ui, sans-serif" }}>
+        {children}
+      </body>
     </html>
   );
 }

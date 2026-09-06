@@ -1,6 +1,6 @@
 /** Aggregates for the owner dashboard. All arithmetic happens in Postgres. */
-import { one, query } from '@/db/pool';
-import type { OrderStatus } from '@/entities/types';
+import { one, query } from "@/db/pool";
+import type { OrderStatus } from "@/entities/types";
 
 export const AdminRepository = {
   async ordersToday() {

@@ -5,28 +5,28 @@
  * and logs that it did. Nothing is sent from the server for WhatsApp; the owner
  * taps the link. E-mail is logged now and delivered once SMTP exists.
  */
-import { assertOwnership, type AuthUser } from '@/core/auth';
-import { config } from '@/core/config';
-import { ApiError } from '@/core/errors';
-import { communicationResponse } from '@/api/dto';
-import { CommunicationRepository } from '@/repository/communication.repository';
-import { OrderRepository } from '@/repository/order.repository';
-import { UserRepository } from '@/repository/user.repository';
+import { assertOwnership, type AuthUser } from "@/core/auth";
+import { config } from "@/core/config";
+import { ApiError } from "@/core/errors";
+import { communicationResponse } from "@/api/dto";
+import { CommunicationRepository } from "@/repository/communication.repository";
+import { OrderRepository } from "@/repository/order.repository";
+import { UserRepository } from "@/repository/user.repository";
 
 const STATUS_TEXT: Record<string, string> = {
-  pending: 'we have received your order',
-  confirmed: 'your order is confirmed',
-  in_production: 'your order is on the press',
-  quality_check: 'your order is in quality check',
-  ready: 'your order is ready for pickup',
-  delivered: 'your order has been delivered',
-  cancelled: 'your order has been cancelled',
+  pending: "we have received your order",
+  confirmed: "your order is confirmed",
+  in_production: "your order is on the press",
+  quality_check: "your order is in quality check",
+  ready: "your order is ready for pickup",
+  delivered: "your order has been delivered",
+  cancelled: "your order has been cancelled",
 };
 
 export const CommunicationUseCase = {
   async list(user: AuthUser, orderId: number) {
     const order = await OrderRepository.find(orderId);
-    if (!order) throw ApiError.notFound('No such order.');
+    if (!order) throw ApiError.notFound("No such order.");
     assertOwnership(user, order.user_id);
     return (await CommunicationRepository.listByOrder(orderId)).map(communicationResponse);
   },
@@ -38,29 +38,31 @@ export const CommunicationUseCase = {
    */
   async whatsappLink(user: AuthUser, orderId: number) {
     const order = await OrderRepository.find(orderId);
-    if (!order) throw ApiError.notFound('No such order.');
+    if (!order) throw ApiError.notFound("No such order.");
     assertOwnership(user, order.user_id);
 
     const customer = await UserRepository.findById(order.user_id);
-    const isOwner = user.role === 'admin';
-    const target = isOwner ? (customer?.phone ?? '') : config().studioWhatsappNumber;
+    const isOwner = user.role === "admin";
+    const target = isOwner ? (customer?.phone ?? "") : config().studioWhatsappNumber;
     if (!target) {
       throw ApiError.badRequest(
-        isOwner ? 'This customer has no phone number on file.' : 'The studio WhatsApp number is not configured.',
+        isOwner
+          ? "This customer has no phone number on file."
+          : "The studio WhatsApp number is not configured.",
       );
     }
 
     const message = isOwner
-      ? `Hello ${customer?.name ?? 'there'}, ${STATUS_TEXT[order.status] ?? 'there is an update'} — order ${order.reference}. — AK IT'S TIME TO SHINE`
+      ? `Hello ${customer?.name ?? "there"}, ${STATUS_TEXT[order.status] ?? "there is an update"} — order ${order.reference}. — AK IT'S TIME TO SHINE`
       : `Hello AK, I am asking about order ${order.reference}.`;
 
     // wa.me wants digits only.
-    const digits = target.replace(/\D/g, '');
+    const digits = target.replace(/\D/g, "");
     const link = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 
     const logged = await CommunicationRepository.insert({
       order_id: orderId,
-      channel: 'whatsapp',
+      channel: "whatsapp",
       summary: `WhatsApp link opened for ${order.reference}`,
       payload: message,
       sent_by: user.id,
@@ -76,15 +78,15 @@ export const CommunicationUseCase = {
    */
   async sendEmail(admin: AuthUser, orderId: number, input: { message: string; subject?: string }) {
     const order = await OrderRepository.find(orderId);
-    if (!order) throw ApiError.notFound('No such order.');
+    if (!order) throw ApiError.notFound("No such order.");
 
     const customer = await UserRepository.findById(order.user_id);
     const subject = input.subject ?? `Update on order ${order.reference}`;
 
     const logged = await CommunicationRepository.insert({
       order_id: orderId,
-      channel: 'email',
-      summary: `${subject} → ${customer?.email ?? 'unknown'}`,
+      channel: "email",
+      summary: `${subject} → ${customer?.email ?? "unknown"}`,
       payload: input.message,
       sent_by: admin.id,
     });

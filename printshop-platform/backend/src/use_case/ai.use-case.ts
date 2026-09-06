@@ -4,16 +4,16 @@
  * Decision D-5 is visible in `reindex`: the AI service computes vectors, this
  * file writes them with the backend's credential.
  */
-import { z } from 'zod';
+import { z } from "zod";
 
-import { AiClient } from '@/ai/client';
-import { ApiError } from '@/core/errors';
+import { AiClient } from "@/ai/client";
+import { ApiError } from "@/core/errors";
 import {
   knowledgeResponse,
   type createKnowledgeSchema,
   type updateKnowledgeSchema,
-} from '@/api/dto';
-import { KnowledgeRepository } from '@/repository/knowledge.repository';
+} from "@/api/dto";
+import { KnowledgeRepository } from "@/repository/knowledge.repository";
 
 export const AiUseCase = {
   async chat(question: string, conversationId?: string) {
@@ -43,7 +43,7 @@ export const AiUseCase = {
 
   async updateEntry(id: number, input: z.infer<typeof updateKnowledgeSchema>) {
     const existing = await KnowledgeRepository.find(id);
-    if (!existing) throw ApiError.notFound('No such knowledge entry.');
+    if (!existing) throw ApiError.notFound("No such knowledge entry.");
 
     const updated = await KnowledgeRepository.update(id, {
       title: input.title,
@@ -57,13 +57,13 @@ export const AiUseCase = {
 
   async deleteEntry(id: number) {
     const removed = await KnowledgeRepository.delete(id);
-    if (!removed) throw ApiError.notFound('No such knowledge entry.');
+    if (!removed) throw ApiError.notFound("No such knowledge entry.");
   },
 
   /** Ask for vectors, then write them here, atomically. */
   async reindex(id: number) {
     const entry = await KnowledgeRepository.find(id);
-    if (!entry) throw ApiError.notFound('No such knowledge entry.');
+    if (!entry) throw ApiError.notFound("No such knowledge entry.");
 
     const res = await AiClient.reindex({
       knowledge_base_entry_id: entry.id,

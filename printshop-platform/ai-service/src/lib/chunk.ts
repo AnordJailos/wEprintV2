@@ -6,13 +6,13 @@
  * Paragraph breaks are respected first — a chunk never mixes two topics unless
  * the paragraph itself is longer than the window.
  */
-import { config } from './config';
+import { config } from "./config";
 
 export function chunkText(content: string): string[] {
   const { chunkWords, chunkOverlapWords } = config();
   const paragraphs = content
     .split(/\n\s*\n/)
-    .map((p) => p.replace(/\s+/g, ' ').trim())
+    .map((p) => p.replace(/\s+/g, " ").trim())
     .filter(Boolean);
 
   const chunks: string[] = [];
@@ -20,20 +20,20 @@ export function chunkText(content: string): string[] {
 
   const flush = () => {
     if (buffer.length) {
-      chunks.push(buffer.join(' '));
+      chunks.push(buffer.join(" "));
       buffer = [];
     }
   };
 
   for (const paragraph of paragraphs) {
-    const words = paragraph.split(' ');
+    const words = paragraph.split(" ");
 
     if (words.length > chunkWords) {
       flush();
       const step = Math.max(1, chunkWords - chunkOverlapWords);
       for (let i = 0; i < words.length; i += step) {
         const slice = words.slice(i, i + chunkWords);
-        if (slice.length) chunks.push(slice.join(' '));
+        if (slice.length) chunks.push(slice.join(" "));
         if (i + chunkWords >= words.length) break;
       }
       continue;
@@ -44,5 +44,5 @@ export function chunkText(content: string): string[] {
   }
   flush();
 
-  return chunks.length ? chunks : [content.replace(/\s+/g, ' ').trim()].filter(Boolean);
+  return chunks.length ? chunks : [content.replace(/\s+/g, " ").trim()].filter(Boolean);
 }

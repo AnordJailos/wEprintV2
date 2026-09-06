@@ -1,14 +1,14 @@
-import type { NextRequest } from 'next/server';
+import type { NextRequest } from "next/server";
 
-import { chatSchema } from '@/api/dto';
-import { requireUser } from '@/core/auth';
-import { ApiError, withErrors } from '@/core/errors';
-import { ok, readJson } from '@/core/http';
-import { allow, clientIp, LIMITS } from '@/core/rate-limit';
-import { AiUseCase } from '@/use_case/ai.use-case';
+import { chatSchema } from "@/api/dto";
+import { requireUser } from "@/core/auth";
+import { ApiError, withErrors } from "@/core/errors";
+import { ok, readJson } from "@/core/http";
+import { allow, clientIp, LIMITS } from "@/core/rate-limit";
+import { AiUseCase } from "@/use_case/ai.use-case";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * Signed-in only and rate limited. The assistant costs CPU on the sidecar, so an

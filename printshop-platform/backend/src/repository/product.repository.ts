@@ -1,6 +1,6 @@
 /** Catalogue reads and writes. */
-import { count, one, query } from '@/db/pool';
-import type { ProductOptionRow, ProductRow } from '@/entities/types';
+import { count, one, query } from "@/db/pool";
+import type { ProductOptionRow, ProductRow } from "@/entities/types";
 
 export const ProductRepository = {
   /**
@@ -8,12 +8,18 @@ export const ProductRepository = {
    * `search` is matched with ILIKE against name and description; the term is a
    * bound parameter, never concatenated.
    */
-  async list(params: { category?: string; search?: string; includeInactive?: boolean; limit: number; offset: number }) {
+  async list(params: {
+    category?: string;
+    search?: string;
+    includeInactive?: boolean;
+    limit: number;
+    offset: number;
+  }) {
     const where: string[] = [];
     const values: unknown[] = [];
 
-    if (!params.includeInactive) where.push('is_available = TRUE');
-    if (params.category && params.category !== 'all') {
+    if (!params.includeInactive) where.push("is_available = TRUE");
+    if (params.category && params.category !== "all") {
       values.push(params.category);
       where.push(`category = $${values.length}`);
     }
@@ -21,7 +27,7 @@ export const ProductRepository = {
       values.push(`%${params.search}%`);
       where.push(`(name ILIKE $${values.length} OR description ILIKE $${values.length})`);
     }
-    const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
     const total = await count(`SELECT COUNT(*)::text AS count FROM products ${clause}`, values);
     const rows = await query<ProductRow>(
@@ -32,16 +38,16 @@ export const ProductRepository = {
   },
 
   find(id: number) {
-    return one<ProductRow>('SELECT * FROM products WHERE id = $1', [id]);
+    return one<ProductRow>("SELECT * FROM products WHERE id = $1", [id]);
   },
 
   findBySlug(slug: string) {
-    return one<ProductRow>('SELECT * FROM products WHERE slug = $1', [slug]);
+    return one<ProductRow>("SELECT * FROM products WHERE slug = $1", [slug]);
   },
 
   options(productId: number) {
     return query<ProductOptionRow>(
-      'SELECT * FROM product_options WHERE product_id = $1 ORDER BY sort_order ASC, id ASC',
+      "SELECT * FROM product_options WHERE product_id = $1 ORDER BY sort_order ASC, id ASC",
       [productId],
     );
   },
@@ -50,7 +56,7 @@ export const ProductRepository = {
   optionsFor(productIds: number[]) {
     if (productIds.length === 0) return Promise.resolve([] as ProductOptionRow[]);
     return query<ProductOptionRow>(
-      'SELECT * FROM product_options WHERE product_id = ANY($1::int[]) ORDER BY sort_order ASC, id ASC',
+      "SELECT * FROM product_options WHERE product_id = ANY($1::int[]) ORDER BY sort_order ASC, id ASC",
       [productIds],
     );
   },
@@ -129,7 +135,7 @@ export const ProductRepository = {
    */
   async archive(id: number) {
     const row = await one<{ id: number }>(
-      'UPDATE products SET is_available = FALSE, updated_at = NOW() WHERE id = $1 RETURNING id',
+      "UPDATE products SET is_available = FALSE, updated_at = NOW() WHERE id = $1 RETURNING id",
       [id],
     );
     return row !== null;
@@ -147,14 +153,21 @@ export const ProductRepository = {
       `INSERT INTO product_options (product_id, option_type, option_value, swatch, price_delta, sort_order)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [data.product_id, data.option_type, data.option_value, data.swatch, data.price_delta, data.sort_order],
+      [
+        data.product_id,
+        data.option_type,
+        data.option_value,
+        data.swatch,
+        data.price_delta,
+        data.sort_order,
+      ],
     );
     return row!;
   },
 
   async deleteOption(productId: number, optionId: number) {
     const row = await one<{ id: number }>(
-      'DELETE FROM product_options WHERE id = $1 AND product_id = $2 RETURNING id',
+      "DELETE FROM product_options WHERE id = $1 AND product_id = $2 RETURNING id",
       [optionId, productId],
     );
     return row !== null;

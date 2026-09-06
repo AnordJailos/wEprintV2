@@ -1,10 +1,10 @@
 /** The inspiration board. Tags are stored as a comma separated string. */
-import { one, query } from '@/db/pool';
-import type { InspirationRow } from '@/entities/types';
+import { one, query } from "@/db/pool";
+import type { InspirationRow } from "@/entities/types";
 
 export const InspirationRepository = {
   list(tag?: string) {
-    if (tag && tag !== 'all') {
+    if (tag && tag !== "all") {
       // Wrap both sides in commas so "poster" never matches "poster-art".
       return query<InspirationRow>(
         `SELECT * FROM inspiration_items
@@ -13,7 +13,9 @@ export const InspirationRepository = {
         [tag.trim()],
       );
     }
-    return query<InspirationRow>('SELECT * FROM inspiration_items ORDER BY created_at DESC, id DESC');
+    return query<InspirationRow>(
+      "SELECT * FROM inspiration_items ORDER BY created_at DESC, id DESC",
+    );
   },
 
   async insert(data: {
@@ -33,7 +35,10 @@ export const InspirationRepository = {
   },
 
   async delete(id: number) {
-    const row = await one<{ id: number }>('DELETE FROM inspiration_items WHERE id = $1 RETURNING id', [id]);
+    const row = await one<{ id: number }>(
+      "DELETE FROM inspiration_items WHERE id = $1 RETURNING id",
+      [id],
+    );
     return row !== null;
   },
 };

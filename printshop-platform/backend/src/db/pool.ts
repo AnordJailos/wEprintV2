@@ -5,9 +5,9 @@
  * string interpolation of user input anywhere in `repository/` — that is the
  * whole defence against SQL injection and it is a rule, not a preference.
  */
-import { Pool, type PoolClient, type QueryResultRow } from 'pg';
+import { Pool, type PoolClient, type QueryResultRow } from "pg";
 
-import { config } from '../core/config.ts';
+import { config } from "../core/config.ts";
 
 // Next.js re-evaluates modules on hot reload; keep one pool per process.
 const globalForPg = globalThis as unknown as { __akPool?: Pool };
@@ -25,17 +25,23 @@ export function pool(): Pool {
         ? { rejectUnauthorized: false }
         : undefined,
     });
-    globalForPg.__akPool.on('error', (err) => console.error('[pg pool]', err.message));
+    globalForPg.__akPool.on("error", (err) => console.error("[pg pool]", err.message));
   }
   return globalForPg.__akPool;
 }
 
-export async function query<T extends QueryResultRow>(text: string, params: unknown[] = []): Promise<T[]> {
+export async function query<T extends QueryResultRow>(
+  text: string,
+  params: unknown[] = [],
+): Promise<T[]> {
   const res = await pool().query<T>(text, params);
   return res.rows;
 }
 
-export async function one<T extends QueryResultRow>(text: string, params: unknown[] = []): Promise<T | null> {
+export async function one<T extends QueryResultRow>(
+  text: string,
+  params: unknown[] = [],
+): Promise<T | null> {
   const rows = await query<T>(text, params);
   return rows[0] ?? null;
 }
@@ -52,13 +58,13 @@ export async function count(text: string, params: unknown[] = []): Promise<numbe
 export async function transaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await pool().connect();
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
     const result = await fn(client);
-    await client.query('COMMIT');
+    await client.query("COMMIT");
     return result;
   } catch (e) {
     try {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
     } catch {
       /* connection already gone */
     }

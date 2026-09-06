@@ -1,22 +1,22 @@
 /** Catalogue rules: slugs, availability, option pricing. */
-import { z } from 'zod';
+import { z } from "zod";
 
-import { ApiError } from '@/core/errors';
+import { ApiError } from "@/core/errors";
 import {
   productOptionResponse,
   productResponse,
   type createProductOptionSchema,
   type createProductSchema,
   type updateProductSchema,
-} from '@/api/dto';
-import { ProductRepository } from '@/repository/product.repository';
+} from "@/api/dto";
+import { ProductRepository } from "@/repository/product.repository";
 
 function slugify(name: string) {
   return name
     .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
     .slice(0, 140);
 }
 
@@ -57,7 +57,7 @@ export const ProductUseCase = {
       : await ProductRepository.findBySlug(idOrSlug);
 
     if (!product || (!product.is_available && !includeInactive)) {
-      throw ApiError.notFound('No such product.');
+      throw ApiError.notFound("No such product.");
     }
     return productResponse(product, await ProductRepository.options(product.id));
   },
@@ -65,15 +65,15 @@ export const ProductUseCase = {
   async create(input: z.infer<typeof createProductSchema>) {
     const slug = input.slug ?? slugify(input.name);
     if (await ProductRepository.findBySlug(slug)) {
-      throw ApiError.conflict('A product with that slug already exists.');
+      throw ApiError.conflict("A product with that slug already exists.");
     }
     const product = await ProductRepository.insert({
       name: input.name,
       slug,
       category: input.category,
-      description: input.description ?? '',
+      description: input.description ?? "",
       base_price: input.base_price,
-      lead_time: input.lead_time ?? '3-5 working days',
+      lead_time: input.lead_time ?? "3-5 working days",
       image_url: input.image_url ?? input.image ?? null,
       is_available: input.is_available ?? true,
     });
@@ -82,11 +82,11 @@ export const ProductUseCase = {
 
   async update(id: number, input: z.infer<typeof updateProductSchema>) {
     const existing = await ProductRepository.find(id);
-    if (!existing) throw ApiError.notFound('No such product.');
+    if (!existing) throw ApiError.notFound("No such product.");
 
     if (input.slug && input.slug !== existing.slug) {
       const clash = await ProductRepository.findBySlug(input.slug);
-      if (clash) throw ApiError.conflict('A product with that slug already exists.');
+      if (clash) throw ApiError.conflict("A product with that slug already exists.");
     }
 
     const updated = await ProductRepository.update(id, {
@@ -99,7 +99,7 @@ export const ProductUseCase = {
       image_url: input.image_url ?? input.image,
       is_available: input.is_available,
     });
-    if (!updated) throw ApiError.notFound('No such product.');
+    if (!updated) throw ApiError.notFound("No such product.");
     return productResponse(updated, await ProductRepository.options(id));
   },
 
@@ -109,13 +109,13 @@ export const ProductUseCase = {
    */
   async archive(id: number) {
     const existing = await ProductRepository.find(id);
-    if (!existing) throw ApiError.notFound('No such product.');
+    if (!existing) throw ApiError.notFound("No such product.");
     await ProductRepository.archive(id);
   },
 
   async addOption(productId: number, input: z.infer<typeof createProductOptionSchema>) {
     const product = await ProductRepository.find(productId);
-    if (!product) throw ApiError.notFound('No such product.');
+    if (!product) throw ApiError.notFound("No such product.");
     const option = await ProductRepository.insertOption({
       product_id: productId,
       option_type: input.option_type,
@@ -129,6 +129,6 @@ export const ProductUseCase = {
 
   async removeOption(productId: number, optionId: number) {
     const removed = await ProductRepository.deleteOption(productId, optionId);
-    if (!removed) throw ApiError.notFound('No such product option.');
+    if (!removed) throw ApiError.notFound("No such product option.");
   },
 };

@@ -5,12 +5,9 @@
  * from the document in src/api/docs/openapi.ts.
  */
 
+"use client";
 
-
-
-'use client';
-
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 declare global {
   interface Window {
@@ -25,18 +22,17 @@ declare global {
 
 export default function DocsPage() {
   useEffect(() => {
-    const css = document.createElement('link');
-    css.rel = 'stylesheet';
-    css.href = 'https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css';
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css";
     document.head.appendChild(css);
 
-    const script = document.createElement('script');
-    script.src =
-      'https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js';
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js";
     script.onload = () => {
       window.SwaggerUIBundle?.({
-        url: '/api-docs/openapi.json',
-        dom_id: '#swagger-ui',
+        url: "/api-docs/openapi.json",
+        dom_id: "#swagger-ui",
         deepLinking: true,
         persistAuthorization: true,
       });
@@ -52,8 +48,6 @@ export default function DocsPage() {
 
   return <div id="swagger-ui" />;
 }
-
-
 
 // export const dynamic = 'force-static';
 

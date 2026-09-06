@@ -5,14 +5,14 @@
  * writes them, because this process only holds a read-only credential (D-4).
  * The response shape is the contract in backend/src/ai/client.ts.
  */
-import { z } from 'zod';
+import { z } from "zod";
 
-import { chunkText } from '@/lib/chunk';
-import { embed } from '@/lib/embedder';
-import { requireInternalKey, toResponse } from '@/lib/guard';
+import { chunkText } from "@/lib/chunk";
+import { embed } from "@/lib/embedder";
+import { requireInternalKey, toResponse } from "@/lib/guard";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 const schema = z.object({
@@ -28,7 +28,12 @@ export async function POST(req: Request) {
     const parsed = schema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) {
       return Response.json(
-        { error: { code: 'BAD_REQUEST', message: 'knowledge_base_entry_id, title and content are required.' } },
+        {
+          error: {
+            code: "BAD_REQUEST",
+            message: "knowledge_base_entry_id, title and content are required.",
+          },
+        },
         { status: 400 },
       );
     }

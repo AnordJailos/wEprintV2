@@ -9,29 +9,23 @@
  * field names through the DTO mappers.
  */
 
-export type Role = 'customer' | 'admin';
+export type Role = "customer" | "admin";
 
 export type OrderStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'in_production'
-  | 'quality_check'
-  | 'ready'
-  | 'delivered'
-  | 'cancelled';
+  "pending" | "confirmed" | "in_production" | "quality_check" | "ready" | "delivered" | "cancelled";
 
 export const ORDER_STATUSES: OrderStatus[] = [
-  'pending',
-  'confirmed',
-  'in_production',
-  'quality_check',
-  'ready',
-  'delivered',
-  'cancelled',
+  "pending",
+  "confirmed",
+  "in_production",
+  "quality_check",
+  "ready",
+  "delivered",
+  "cancelled",
 ];
 
-export type PaymentStatus = 'unpaid' | 'deposit' | 'paid' | 'refunded';
-export const PAYMENT_STATUSES: PaymentStatus[] = ['unpaid', 'deposit', 'paid', 'refunded'];
+export type PaymentStatus = "unpaid" | "deposit" | "paid" | "refunded";
+export const PAYMENT_STATUSES: PaymentStatus[] = ["unpaid", "deposit", "paid", "refunded"];
 
 export type UserRow = {
   id: number;
@@ -126,7 +120,7 @@ export type OrderStatusHistoryRow = {
 export type CommunicationRow = {
   id: number;
   order_id: number;
-  channel: 'whatsapp' | 'email';
+  channel: "whatsapp" | "email";
   summary: string;
   payload: string | null;
   sent_by: number | null;

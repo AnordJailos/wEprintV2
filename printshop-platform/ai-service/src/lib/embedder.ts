@@ -7,11 +7,14 @@
  * once per process and reused; the first call downloads it into
  * TRANSFORMERS_CACHE.
  */
-import { config } from './config.ts';
+import { config } from "./config.ts";
 
 export const EMBEDDING_DIMENSIONS = 384;
 
-type Extractor = (text: string | string[], opts: { pooling: 'mean'; normalize: boolean }) => Promise<{
+type Extractor = (
+  text: string | string[],
+  opts: { pooling: "mean"; normalize: boolean },
+) => Promise<{
   tolist(): number[][];
 }>;
 
@@ -19,10 +22,10 @@ const globalForModel = globalThis as unknown as { __akExtractor?: Promise<Extrac
 
 async function extractor(): Promise<Extractor> {
   globalForModel.__akExtractor ??= (async () => {
-    const { pipeline, env } = await import('@xenova/transformers');
+    const { pipeline, env } = await import("@xenova/transformers");
     // No remote calls once the model is cached; keep it local and predictable.
-    env.cacheDir = process.env.TRANSFORMERS_CACHE ?? './.model-cache';
-    return (await pipeline('feature-extraction', config().embeddingModel)) as unknown as Extractor;
+    env.cacheDir = process.env.TRANSFORMERS_CACHE ?? "./.model-cache";
+    return (await pipeline("feature-extraction", config().embeddingModel)) as unknown as Extractor;
   })();
   return globalForModel.__akExtractor;
 }
@@ -30,12 +33,14 @@ async function extractor(): Promise<Extractor> {
 export async function embed(texts: string[]): Promise<number[][]> {
   if (!texts.length) return [];
   const run = await extractor();
-  const output = await run(texts, { pooling: 'mean', normalize: true });
+  const output = await run(texts, { pooling: "mean", normalize: true });
   const vectors = output.tolist();
 
   for (const v of vectors) {
     if (v.length !== EMBEDDING_DIMENSIONS) {
-      throw new Error(`Embedding model returned ${v.length} dimensions; the schema expects ${EMBEDDING_DIMENSIONS}.`);
+      throw new Error(
+        `Embedding model returned ${v.length} dimensions; the schema expects ${EMBEDDING_DIMENSIONS}.`,
+      );
     }
   }
   return vectors;
@@ -49,10 +54,10 @@ export async function embedOne(text: string): Promise<number[]> {
 /** Load the model without answering anything — used by /health and warmup. */
 export async function isModelReady(): Promise<boolean> {
   try {
-    await embedOne('warmup');
+    await embedOne("warmup");
     return true;
   } catch (e) {
-    console.error('[embedder]', e);
+    console.error("[embedder]", e);
     return false;
   }
 }

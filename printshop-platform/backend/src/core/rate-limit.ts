@@ -44,7 +44,7 @@ export function allow(key: string, { limit, windowMs }: Limit): boolean {
  * hop is used. Never trusted for authorisation — only for throttling.
  */
 export function clientIp(req: Request): string {
-  const fwd = req.headers.get('x-forwarded-for');
-  if (fwd) return fwd.split(',')[0]!.trim();
-  return req.headers.get('x-real-ip') ?? 'unknown';
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0]!.trim();
+  return req.headers.get("x-real-ip") ?? "unknown";
 }

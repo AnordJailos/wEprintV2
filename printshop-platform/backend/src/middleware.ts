@@ -11,48 +11,48 @@
  * inside each handler, so a route cannot accidentally become public by falling
  * outside a matcher pattern.
  */
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const ALLOWED_HEADERS = 'authorization, content-type, x-requested-with';
-const ALLOWED_METHODS = 'GET, POST, PATCH, DELETE, OPTIONS';
+const ALLOWED_HEADERS = "authorization, content-type, x-requested-with";
+const ALLOWED_METHODS = "GET, POST, PATCH, DELETE, OPTIONS";
 
 function allowedOrigins(): string[] {
-  return (process.env.CORS_ALLOWED_ORIGINS ?? 'http://localhost:5173')
-    .split(',')
-    .map((o) => o.trim().replace(/\/$/, ''))
+  return (process.env.CORS_ALLOWED_ORIGINS ?? "http://localhost:5173")
+    .split(",")
+    .map((o) => o.trim().replace(/\/$/, ""))
     .filter(Boolean);
 }
 
 function corsHeaders(origin: string | null): Record<string, string> {
   if (!origin) return {};
   const list = allowedOrigins();
-  const normalised = origin.replace(/\/$/, '');
+  const normalised = origin.replace(/\/$/, "");
   if (!list.includes(normalised)) return {};
   return {
-    'access-control-allow-origin': normalised,
-    'access-control-allow-credentials': 'true',
-    'access-control-allow-methods': ALLOWED_METHODS,
-    'access-control-allow-headers': ALLOWED_HEADERS,
-    'access-control-max-age': '86400',
-    vary: 'Origin',
+    "access-control-allow-origin": normalised,
+    "access-control-allow-credentials": "true",
+    "access-control-allow-methods": ALLOWED_METHODS,
+    "access-control-allow-headers": ALLOWED_HEADERS,
+    "access-control-max-age": "86400",
+    vary: "Origin",
   };
 }
 
 const SECURITY_HEADERS: Record<string, string> = {
-  'x-content-type-options': 'nosniff',
-  'x-frame-options': 'DENY',
-  'referrer-policy': 'no-referrer',
-  'cross-origin-resource-policy': 'same-site',
-  'permissions-policy': 'camera=(), microphone=(), geolocation=()',
-  'strict-transport-security': 'max-age=31536000; includeSubDomains',
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "referrer-policy": "no-referrer",
+  "cross-origin-resource-policy": "same-site",
+  "permissions-policy": "camera=(), microphone=(), geolocation=()",
+  "strict-transport-security": "max-age=31536000; includeSubDomains",
 };
 
 export function middleware(req: NextRequest) {
-  const origin = req.headers.get('origin');
+  const origin = req.headers.get("origin");
   const cors = corsHeaders(origin);
 
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new NextResponse(null, { status: 204, headers: { ...cors, ...SECURITY_HEADERS } });
   }
 
@@ -63,5 +63,5 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   // Everything except Next's own static assets.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

@@ -7,10 +7,10 @@
  * `entities/types.ts`; nothing raw is ever returned to a client, which is how a
  * `password_hash` cannot escape by accident.
  */
-import { z } from 'zod';
+import { z } from "zod";
 
-import { config } from '@/core/config';
-import type { AuthUser } from '@/core/auth';
+import { config } from "@/core/config";
+import type { AuthUser } from "@/core/auth";
 import {
   ORDER_STATUSES,
   money,
@@ -23,15 +23,15 @@ import {
   type ProductOptionRow,
   type ProductRow,
   type UserRow,
-} from '@/entities/types';
-import type { OrderWithCustomer } from '@/repository/order.repository';
+} from "@/entities/types";
+import type { OrderWithCustomer } from "@/repository/order.repository";
 
 /* ------------------------------------------------------------------- auth --- */
 
 export const registerSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(200),
-  password: z.string().min(8, 'Use at least 8 characters.').max(128),
+  password: z.string().min(8, "Use at least 8 characters.").max(128),
   phone: z.string().trim().min(6).max(30).optional(),
 });
 
@@ -52,7 +52,7 @@ export const updateProfileSchema = z
     name: z.string().trim().min(2).max(120).optional(),
     phone: z.string().trim().min(6).max(30).optional(),
   })
-  .refine((v) => v.name !== undefined || v.phone !== undefined, { message: 'Nothing to update.' });
+  .refine((v) => v.name !== undefined || v.phone !== undefined, { message: "Nothing to update." });
 
 export function userResponse(u: UserRow | AuthUser) {
   return {
@@ -80,12 +80,12 @@ export const createProductSchema = z.object({
     .trim()
     .min(2)
     .max(140)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase words separated by hyphens.')
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase words separated by hyphens.")
     .optional(),
   category: z.string().trim().min(2).max(60),
-  description: z.string().trim().max(4000).default(''),
+  description: z.string().trim().max(4000).default(""),
   base_price: z.coerce.number().min(0).max(10_000_000),
-  lead_time: z.string().trim().max(60).default('3-5 working days'),
+  lead_time: z.string().trim().max(60).default("3-5 working days"),
   image_url: z.string().trim().url().max(600).nullable().optional(),
   image: z.string().trim().url().max(600).nullable().optional(), // alias the UI may send
   is_available: z.boolean().optional(),
@@ -110,14 +110,9 @@ export const updateProductSchema = z.object({
 });
 
 export const createProductOptionSchema = z.object({
-  option_type: z.enum(['color', 'size', 'placement', 'material']),
+  option_type: z.enum(["color", "size", "placement", "material"]),
   option_value: z.string().trim().min(1).max(120),
-  swatch: z
-    .string()
-    .trim()
-    .max(30)
-    .nullable()
-    .optional(),
+  swatch: z.string().trim().max(30).nullable().optional(),
   price_delta: z.coerce.number().min(-1_000_000).max(1_000_000).default(0),
   sort_order: z.coerce.number().int().min(0).max(999).default(0),
 });
@@ -144,7 +139,7 @@ export function productResponse(p: ProductRow, options: ProductOptionRow[] = [])
     lead_time: p.lead_time,
     is_available: p.is_available,
     // `image` is what the UI renders; `image_url` is kept for API consumers.
-    image: p.image_url ?? '',
+    image: p.image_url ?? "",
     image_url: p.image_url,
     options: options.map(productOptionResponse),
   };
@@ -157,7 +152,7 @@ export const designQuerySchema = z.object({
 });
 
 export function designResponse(d: DesignRow) {
-  const base = config().publicBaseUrl.replace(/\/$/, '');
+  const base = config().publicBaseUrl.replace(/\/$/, "");
   return {
     id: d.id,
     user_id: d.user_id,
@@ -166,7 +161,7 @@ export function designResponse(d: DesignRow) {
     file_url: `${base}/api/v1/uploads/${d.file_path}`,
     mime_type: d.mime_type,
     size_bytes: Number(d.size_bytes),
-    notes: d.notes ?? '',
+    notes: d.notes ?? "",
     uploaded_at: d.uploaded_at,
   };
 }
@@ -177,7 +172,7 @@ export const inspirationQuerySchema = z.object({ tag: z.string().trim().max(40).
 
 export const createInspirationSchema = z.object({
   title: z.string().trim().min(2).max(200),
-  source: z.enum(['pinterest', 'studio']),
+  source: z.enum(["pinterest", "studio"]),
   external_url: z.string().trim().url().max(600),
   image_url: z.string().trim().url().max(600).optional(),
   image: z.string().trim().url().max(600).optional(),
@@ -193,7 +188,7 @@ export function inspirationResponse(i: InspirationRow) {
     image: i.image_url,
     image_url: i.image_url,
     tags: i.tags
-      .split(',')
+      .split(",")
       .map((t) => t.trim())
       .filter(Boolean),
   };
@@ -216,7 +211,7 @@ export const createOrderSchema = z.object({
         options: z.record(z.string().max(60), z.string().max(200)).optional(),
       }),
     )
-    .min(1, 'An order needs at least one item.')
+    .min(1, "An order needs at least one item.")
     .max(50),
   design_id: z.coerce.number().int().min(1).optional(),
   notes: z.string().trim().max(2000).optional(),
@@ -228,7 +223,7 @@ export const updateOrderStatusSchema = z.object({
 });
 
 export const updatePaymentStatusSchema = z.object({
-  payment_status: z.enum(['unpaid', 'deposit', 'paid', 'refunded']),
+  payment_status: z.enum(["unpaid", "deposit", "paid", "refunded"]),
 });
 
 export function orderItemResponse(i: OrderItemRow) {
@@ -251,7 +246,7 @@ export function orderResponse(o: OrderWithCustomer, items: OrderItemRow[] = []) 
     status: o.status,
     payment_status: o.payment_status,
     total: money(o.total),
-    notes: o.notes ?? '',
+    notes: o.notes ?? "",
     customer_name: o.customer_name,
     created_at: o.created_at,
     updated_at: o.updated_at,
@@ -260,7 +255,7 @@ export function orderResponse(o: OrderWithCustomer, items: OrderItemRow[] = []) 
 }
 
 export function statusEventResponse(h: OrderStatusHistoryRow) {
-  return { id: h.id, status: h.status, note: h.note ?? '', changed_at: h.changed_at };
+  return { id: h.id, status: h.status, note: h.note ?? "", changed_at: h.changed_at };
 }
 
 /* --------------------------------------------------------- communications --- */
@@ -271,13 +266,19 @@ export const sendEmailSchema = z.object({
 });
 
 export function communicationResponse(c: CommunicationRow) {
-  return { id: c.id, order_id: c.order_id, channel: c.channel, summary: c.summary, sent_at: c.sent_at };
+  return {
+    id: c.id,
+    order_id: c.order_id,
+    channel: c.channel,
+    summary: c.summary,
+    sent_at: c.sent_at,
+  };
 }
 
 /* --------------------------------------------------------------------- ai --- */
 
 export const chatSchema = z.object({
-  question: z.string().trim().min(2, 'Ask a slightly longer question.').max(2000),
+  question: z.string().trim().min(2, "Ask a slightly longer question.").max(2000),
   conversation_id: z.string().trim().max(64).optional(),
 });
 

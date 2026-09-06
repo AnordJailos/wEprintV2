@@ -1,6 +1,6 @@
 /** Uploaded artwork. Files live on disk; this table is the index. */
-import { one, query } from '@/db/pool';
-import type { DesignRow } from '@/entities/types';
+import { one, query } from "@/db/pool";
+import type { DesignRow } from "@/entities/types";
 
 export const DesignRepository = {
   list(params: { userId: number | null; orderId?: number }) {
@@ -14,12 +14,15 @@ export const DesignRepository = {
       values.push(params.orderId);
       where.push(`order_id = $${values.length}`);
     }
-    const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
-    return query<DesignRow>(`SELECT * FROM designs ${clause} ORDER BY uploaded_at DESC, id DESC`, values);
+    const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    return query<DesignRow>(
+      `SELECT * FROM designs ${clause} ORDER BY uploaded_at DESC, id DESC`,
+      values,
+    );
   },
 
   find(id: number) {
-    return one<DesignRow>('SELECT * FROM designs WHERE id = $1', [id]);
+    return one<DesignRow>("SELECT * FROM designs WHERE id = $1", [id]);
   },
 
   async insert(data: {
@@ -49,7 +52,7 @@ export const DesignRepository = {
   },
 
   async delete(id: number) {
-    const row = await one<{ id: number }>('DELETE FROM designs WHERE id = $1 RETURNING id', [id]);
+    const row = await one<{ id: number }>("DELETE FROM designs WHERE id = $1 RETURNING id", [id]);
     return row !== null;
   },
 };

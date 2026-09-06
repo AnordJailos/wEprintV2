@@ -1,12 +1,12 @@
-import type { NextRequest } from 'next/server';
+import type { NextRequest } from "next/server";
 
-import { requireUser } from '@/core/auth';
-import { withErrors } from '@/core/errors';
-import { ok, readId } from '@/core/http';
-import { CommunicationUseCase } from '@/use_case/communication.use-case';
+import { requireUser } from "@/core/auth";
+import { withErrors } from "@/core/errors";
+import { ok, readId } from "@/core/http";
+import { CommunicationUseCase } from "@/use_case/communication.use-case";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ orderId: string }> };
 
@@ -18,5 +18,5 @@ type Ctx = { params: Promise<{ orderId: string }> };
 export const GET = withErrors(async (req: NextRequest, ctx: Ctx) => {
   const user = await requireUser(req);
   const { orderId } = await ctx.params;
-  return ok(await CommunicationUseCase.whatsappLink(user, readId(orderId, 'order id')));
+  return ok(await CommunicationUseCase.whatsappLink(user, readId(orderId, "order id")));
 });

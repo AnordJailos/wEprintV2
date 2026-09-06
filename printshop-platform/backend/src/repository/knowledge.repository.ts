@@ -5,21 +5,26 @@
  * the backend's read/write credential. The AI service only ever computes the
  * float arrays and hands them back.
  */
-import { one, query, transaction } from '@/db/pool';
-import type { KnowledgeEntryRow } from '@/entities/types';
+import { one, query, transaction } from "@/db/pool";
+import type { KnowledgeEntryRow } from "@/entities/types";
 
 export const KnowledgeRepository = {
   list(publishedOnly = false) {
     return query<KnowledgeEntryRow>(
-      `SELECT * FROM knowledge_base_entries ${publishedOnly ? 'WHERE is_published = TRUE' : ''} ORDER BY id ASC`,
+      `SELECT * FROM knowledge_base_entries ${publishedOnly ? "WHERE is_published = TRUE" : ""} ORDER BY id ASC`,
     );
   },
 
   find(id: number) {
-    return one<KnowledgeEntryRow>('SELECT * FROM knowledge_base_entries WHERE id = $1', [id]);
+    return one<KnowledgeEntryRow>("SELECT * FROM knowledge_base_entries WHERE id = $1", [id]);
   },
 
-  async insert(data: { title: string; content: string; category: string | null; is_published: boolean }) {
+  async insert(data: {
+    title: string;
+    content: string;
+    category: string | null;
+    is_published: boolean;
+  }) {
     const row = await one<KnowledgeEntryRow>(
       `INSERT INTO knowledge_base_entries (title, content, category, is_published, updated_at)
        VALUES ($1, $2, $3, $4, NOW())
@@ -31,7 +36,12 @@ export const KnowledgeRepository = {
 
   update(
     id: number,
-    data: Partial<{ title: string; content: string; category: string | null; is_published: boolean }>,
+    data: Partial<{
+      title: string;
+      content: string;
+      category: string | null;
+      is_published: boolean;
+    }>,
   ) {
     return one<KnowledgeEntryRow>(
       `UPDATE knowledge_base_entries SET
@@ -42,12 +52,21 @@ export const KnowledgeRepository = {
           updated_at   = NOW()
         WHERE id = $1
         RETURNING *`,
-      [id, data.title ?? null, data.content ?? null, data.category ?? null, data.is_published ?? null],
+      [
+        id,
+        data.title ?? null,
+        data.content ?? null,
+        data.category ?? null,
+        data.is_published ?? null,
+      ],
     );
   },
 
   async delete(id: number) {
-    const row = await one<{ id: number }>('DELETE FROM knowledge_base_entries WHERE id = $1 RETURNING id', [id]);
+    const row = await one<{ id: number }>(
+      "DELETE FROM knowledge_base_entries WHERE id = $1 RETURNING id",
+      [id],
+    );
     return row !== null;
   },
 
@@ -55,14 +74,20 @@ export const KnowledgeRepository = {
    * Replace every vector for one entry atomically, so a reindex can never leave
    * the assistant reading half-old, half-new chunks.
    */
-  replaceEmbeddings(entryId: number, chunks: { chunk_index: number; chunk_text: string; embedding: number[] }[]) {
+  replaceEmbeddings(
+    entryId: number,
+    chunks: { chunk_index: number; chunk_text: string; embedding: number[] }[],
+  ) {
     return transaction(async (client) => {
-      await client.query('DELETE FROM knowledge_base_embeddings WHERE knowledge_base_entry_id = $1', [entryId]);
+      await client.query(
+        "DELETE FROM knowledge_base_embeddings WHERE knowledge_base_entry_id = $1",
+        [entryId],
+      );
       for (const chunk of chunks) {
         await client.query(
           `INSERT INTO knowledge_base_embeddings (knowledge_base_entry_id, chunk_index, chunk_text, embedding)
            VALUES ($1, $2, $3, $4::vector)`,
-          [entryId, chunk.chunk_index, chunk.chunk_text, `[${chunk.embedding.join(',')}]`],
+          [entryId, chunk.chunk_index, chunk.chunk_text, `[${chunk.embedding.join(",")}]`],
         );
       }
       return chunks.length;
