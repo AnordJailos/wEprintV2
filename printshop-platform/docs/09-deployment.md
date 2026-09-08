@@ -163,3 +163,16 @@ curl -s https://yourdomain.com/api/v1/../health
 
 Migrations before builds, always — new code expecting a missing column fails
 harder than old code ignoring a new one.
+
+### Frontend environment
+
+The frontend needs exactly one variable at build time:
+
+```bash
+VITE_API_BASE_URL=https://yourdomain.com/api/v1 npm run build
+```
+
+When `VITE_API_BASE_URL` is set the app talks to the real backend and every
+demo hint disappears — including the "Demo mode: any email works" note on the
+sign-in page. When it is absent the app runs on built-in demo data and shows
+those hints, which is correct for previews only.

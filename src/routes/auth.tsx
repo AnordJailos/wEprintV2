@@ -6,7 +6,7 @@ import { RegistrationMark } from "@/components/RegistrationMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api, setSession } from "@/lib/api";
+import { api, IS_DEMO, setSession } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/auth")({
@@ -126,10 +126,12 @@ function Auth() {
         )}
       </form>
 
-      <p className="text-receipt mt-8 rounded-lg bg-secondary p-4 text-center text-muted-foreground">
-        Demo mode: any email works. Use one starting with <span className="text-accent">admin</span>
-        to enter the admin console.
-      </p>
+      {IS_DEMO && (
+        <p className="text-receipt mt-8 rounded-lg bg-secondary p-4 text-center text-muted-foreground">
+          Demo mode: any email works. Use one starting with <span className="text-accent">admin</span>
+          to enter the admin console.
+        </p>
+      )}
     </div>
   );
 }

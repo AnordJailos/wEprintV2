@@ -39,9 +39,20 @@ export type {
   User,
 };
 
-const BASE_URL =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL) ||
-  "http://localhost:8080/api/v1";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!BASE_URL) {
+  throw new Error("VITE_API_BASE_URL is not configured");
+}
+
+/**
+ * True only when no real backend URL is configured — i.e. the UI is running on
+ * its built-in demo data. In production VITE_API_BASE_URL is always set, so
+ * customer-facing pages must never mention demo mode.
+ */
+export const IS_DEMO = !(
+  typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL
+);
 
 const TOKEN_KEY = "ak_token";
 const USER_KEY = "ak_user";
@@ -335,6 +346,91 @@ export const api = {
       () => request<{ answer: string; sources: string[] }>("/ai/chat", { method: "POST", body: { question } }),
       () => demoAnswer(question),
     ),
+
+  /**
+   * Streaming chat: POSTs to /ai/chat/stream and invokes callbacks as SSE
+   * events arrive. Returns the final { answer, sources }. In demo mode (or on
+   * network/soft failures) the canned answer is "typed" word by word so the
+   * UI behaves identically.
+   */
+  chatStream: async (
+    question: string,
+    handlers: {
+      onSources?: (sources: string[]) => void;
+      onDelta?: (text: string) => void;
+    } = {},
+  ): Promise<{ answer: string; sources: string[] }> => {
+    const demo = async () => {
+      const d = demoAnswer(question);
+      handlers.onSources?.(d.sources);
+      let built = "";
+      for (const w of d.answer.match(/\S+\s*/g) ?? []) {
+        built += w;
+        handlers.onDelta?.(w);
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      return { answer: built.trim(), sources: d.sources };
+    };
+
+    try {
+      const url = new URL(BASE_URL.replace(/\/$/, "") + "/ai/chat/stream", window.location.origin);
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const token = getToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const res = await fetch(url.toString(), {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ question }),
+      });
+      if (!res.ok || !res.body) {
+        if (res.status === 401) clearSession();
+        if ([0, 401, 403, 404, 502].includes(res.status)) return demo();
+        const payload = await res.json().catch(() => null);
+        throw new ApiError(payload?.error?.code ?? "UNKNOWN", payload?.error?.message ?? res.statusText, res.status);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let event = "message";
+      let final: { answer: string; sources: string[] } | null = null;
+
+      const dispatch = (dataLine: string) => {
+        try {
+          const data = JSON.parse(dataLine);
+          if (event === "sources") handlers.onSources?.(data.sources ?? []);
+          else if (event === "delta") handlers.onDelta?.(data.text ?? "");
+          else if (event === "done") final = { answer: data.answer ?? "", sources: data.sources ?? [] };
+          else if (event === "error") throw new ApiError("STREAM", data.message ?? "Stream failed", 500);
+        } catch (e) {
+          if (e instanceof ApiError) throw e;
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let cut: number;
+        while ((cut = buffer.indexOf("\n\n")) !== -1) {
+          const frame = buffer.slice(0, cut);
+          buffer = buffer.slice(cut + 2);
+          event = "message";
+          for (const line of frame.split("\n")) {
+            if (line.startsWith("event:")) event = line.slice(6).trim();
+            else if (line.startsWith("data:")) dispatch(line.slice(5).trim());
+          }
+        }
+      }
+      if (final) return final;
+      throw new ApiError("STREAM", "Stream ended without an answer", 500);
+    } catch (e) {
+      if (e instanceof ApiError && ![0, 401, 403, 404, 502].includes(e.status)) throw e;
+      if (!(e instanceof ApiError) || e.status !== 500) return demo();
+      throw e;
+    }
+  },
 
   /* -------------------------------------------------------------- admin */
   dashboard: () => withDemo(() => request<DashboardMetrics>("/admin/dashboard/metrics"), () => demoDashboard),

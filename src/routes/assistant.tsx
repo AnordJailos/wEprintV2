@@ -36,7 +36,7 @@ function Assistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      text: "Hi — I'm the AK studio assistant. Ask me anything about pricing, materials, artwork specs or turnaround, and I'll answer from the studio's own notes.",
+      text: "Hi — I'm the AK Printshop assistant. Ask me anything about pricing, materials, artwork specs or turnaround, and I'll answer from the studio's own notes.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -52,14 +52,22 @@ function Assistant() {
     setMessages((m) => [...m, { role: "user", text: question }]);
     setInput("");
     setThinking(true);
+    // An empty assistant bubble that fills word by word as the answer streams.
+    setMessages((m) => [...m, { role: "assistant", text: "" }]);
+    const patchLast = (patch: Partial<Message>) =>
+      setMessages((m) => m.map((msg, i) => (i === m.length - 1 ? { ...msg, ...patch } : msg)));
     try {
-      const res = await api.chat(question);
-      setMessages((m) => [...m, { role: "assistant", text: res.answer, sources: res.sources }]);
+      let text = "";
+      await api.chatStream(question, {
+        onSources: (sources) => patchLast({ sources }),
+        onDelta: (delta) => {
+          text += delta;
+          patchLast({ text });
+        },
+      });
+      if (!text.trim()) patchLast({ text: "I don't have an answer for that yet — message AK directly." });
     } catch {
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", text: "I couldn't reach the studio brain just then. Try again in a moment." },
-      ]);
+      patchLast({ text: "I couldn't reach the studio brain just then. Try again in a moment." });
     } finally {
       setThinking(false);
     }

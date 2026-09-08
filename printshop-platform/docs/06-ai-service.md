@@ -88,8 +88,11 @@ Two modes:
 - **LLM** (`LLM_API_URL` set): the passages go into a strict system prompt that
   forbids outside knowledge, caps the length, and tells the model to treat the
   passages as data — so a note containing "ignore your instructions" is ignored.
-  Any OpenAI-compatible endpoint works: set `LLM_API_URL`, `LLM_API_KEY`,
-  `LLM_MODEL`.
+  The recommended endpoint is the Lovable AI Gateway — free, no external
+  account: set `LLM_API_URL=https://ai.gateway.lovable.dev/v1`, your
+  `LOVABLE_API_KEY`, and `LLM_MODEL=openai/gpt-5.6-sol` (the default). Any
+  OpenAI-compatible Responses API works. Note that Grok (xAI) is a paid API —
+  it is not the free option.
 
 If the LLM call fails or times out it falls back to extractive rather than
 erroring. The customer always gets an answer.
@@ -102,6 +105,7 @@ erroring. The customer always gets an answer.
 | --- | --- | --- |
 | `GET /health` | none | Database reachable + model loadable |
 | `POST /internal/ai/generate` | `x-internal-key` | `{question}` → `{answer, sources}` |
+| `POST /internal/ai/generate/stream` | `x-internal-key` | Same question, answer streamed back as Server-Sent Events: `sources`, repeated `delta`, then `done` frames. With an LLM configured the deltas are its live output tokens; without one the extractive answer is typed in small slices so the UI behaves identically. There is deliberately no request timeout — a grounded answer can take minutes, and an aborted run would still have consumed the LLM call. |
 | `POST /internal/ai/reindex` | `x-internal-key` | `{knowledge_base_entry_id,title,content}` → `{chunks:[{chunk_index,chunk_text,embedding}]}` |
 
 The key is compared with `timingSafeEqual` in `src/lib/guard.ts`, so it cannot be
