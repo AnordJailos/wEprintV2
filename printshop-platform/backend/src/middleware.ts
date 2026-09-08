@@ -43,7 +43,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   "x-content-type-options": "nosniff",
   "x-frame-options": "DENY",
   "referrer-policy": "no-referrer",
-  "cross-origin-resource-policy": "same-site",
+  "cross-origin-resource-policy": "cross-origin", // was "same-site"
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
   "strict-transport-security": "max-age=31536000; includeSubDomains",
 };
