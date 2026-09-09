@@ -80,15 +80,24 @@ function Admin() {
     queryFn: () => api.listOrders({ status: filter }),
   });
 
+  // Every value is read defensively: a backend that omits or string-encodes a
+  // number must never blank the console with a runtime error.
+  const num = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : null);
+  const revenue = num(metrics?.revenue_month);
+  const turnaround = num(metrics?.avg_turnaround_days);
+  const byStatus = Array.isArray(metrics?.by_status) ? metrics!.by_status : [];
+  const trend = Array.isArray(metrics?.revenue_trend) ? metrics!.revenue_trend : [];
+
   const cards = [
-    { label: "Orders today", value: metrics?.orders_today ?? "—" },
+    { label: "Orders today", value: num(metrics?.orders_today) ?? "—" },
     {
       label: "Revenue this month",
-      value: metrics ? `$${metrics.revenue_month.toLocaleString()}` : "—",
+      value: revenue === null ? "—" : `$${revenue.toLocaleString()}`,
     },
-    { label: "Open jobs", value: metrics?.open_orders ?? "—" },
-    { label: "Avg turnaround", value: metrics ? `${metrics.avg_turnaround_days}d` : "—" },
+    { label: "Open jobs", value: num(metrics?.open_orders) ?? "—" },
+    { label: "Avg turnaround", value: turnaround === null ? "—" : `${turnaround}d` },
   ];
+
 
   return (
     <div className="mx-auto w-full max-w-7xl px-5 py-14">
@@ -118,7 +127,7 @@ function Admin() {
           </h2>
           <div className="mt-6 h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={metrics?.revenue_trend ?? []}>
+              <BarChart data={trend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} />
                 <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
@@ -139,9 +148,10 @@ function Admin() {
         <section className="rounded-xl border border-border bg-card p-6">
           <h2 className="text-display text-xl font-bold">Production queue</h2>
           <ul className="mt-5 space-y-3">
-            {(metrics?.by_status ?? []).map((s) => {
+            {byStatus.map((s) => {
               const label = ORDER_STAGES.find((x) => x.status === s.status)?.label ?? s.status;
-              const max = Math.max(...(metrics?.by_status ?? []).map((x) => x.count), 1);
+              const max = Math.max(...byStatus.map((x) => Number(x.count) || 0), 1);
+
               return (
                 <li key={s.status}>
                   <div className="flex items-center justify-between text-sm">
@@ -201,9 +211,10 @@ function Admin() {
                   </td>
                   <td className="py-4">{o.customer_name}</td>
                   <td className="py-4 text-muted-foreground">
-                    {o.items.reduce((n, i) => n + i.quantity, 0)} pcs
+                    {(o.items ?? []).reduce((n, i) => n + Number(i.quantity || 0), 0)} pcs
                   </td>
-                  <td className="py-4 font-mono">${o.total.toFixed(2)}</td>
+                  <td className="py-4 font-mono">${(Number(o.total) || 0).toFixed(2)}</td>
+
                   <td className="py-4">
                     <Select
                       value={o.status}
